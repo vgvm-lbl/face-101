@@ -1,0 +1,1 @@
+can you generate some html, css and javascript that uses the webcam and mediapipe's Face Landmark Detection api to describe: the rotation of the face in 3d, the openness of the eyes and mouth from 0-1 and the direction the pupils are looking?

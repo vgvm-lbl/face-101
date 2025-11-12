@@ -1,0 +1,44 @@
+// HTML
+<video id="camera" autoplay></video>
+<div id="feedback"></div>
+<script src="path/to/mediapipe-landmarks.min.js"></script>
+<script src="path/to/three.min.js"></script>
+<script src="path/to/your_script.js"></script>
+
+// CSS
+#camera {
+  display: block;
+  margin: auto;
+}
+
+#feedback {
+  position: absolute;
+  bottom: 5px;
+  right: 5px;
+}
+// Get user permission to use their camera
+navigator.mediaDevices.getUserMedia({ audio: false, video: true }).then(stream => {
+    // Attach stream to <video> element
+    document.getElementById("camera").srcObject = stream;
+}).catch(error => console.log("Error: ", error));
+
+// Function to draw landmarks on video feed
+async function drawLandmarksOnFeed() {
+  try {
+      const videoElement = document.getElementById("camera");
+      const width = videoElement.videoWidth;
+      const height = videoElement.videoHeight;
+      
+      let container = new THREE.Scene();
+    
+     let textureLoader = new THREE.TextureLoader();
+    const videoTexture = new THREE.CanvasTexture(document.createElement('canvas'));
+
+    // Create renderer for displaying results
+    const renderer = new THREE.WebGLRenderer();
+    renderer.setSize(width, height);
+
+    // Add the renderer to the page
+    const canvasContainer = document.querySelector('#canvas-container');
+    canvasContai
+

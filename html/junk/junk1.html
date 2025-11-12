@@ -1,0 +1,142 @@
+<!DOCTYPE html PUBLIC"-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<HTML xmlns="http://www.w3.org/1999/xhtml">
+	<HEAD>
+		<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+		<meta content="utf-8" http-equiv="encoding">
+
+		<TITLE>index</TITLE>
+
+		<script type="module">
+			const taskURL  = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0/wasm';
+			const modelURL = 'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task';
+			import vision from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0";
+
+/*
+			const taskURL = './cache/tasks-vision-0.10.0.wasm';
+			const modelURL  = './cache/face_landmarker.task';
+			import vision from './cache/tasks-vision-0.10.0.js';
+*/
+
+			const { FaceLandmarker, FilesetResolver, DrawingUtils } = vision;
+
+			const filesetResolver = await FilesetResolver.forVisionTasks( taskURL );
+
+			const faceLandmarker = await FaceLandmarker.createFromOptions(filesetResolver, {
+				baseOptions: { modelAssetPath: modelURL, delegate: 'GPU' },
+				outputFaceBlendshapes: true,
+				runningMode: 'VIDEO', 
+				numFaces: 1
+			});
+
+			const canvas = document.getElementsByTagName( 'canvas' )[0];
+			const video  = document.getElementsByTagName( 'video' )[0];
+			const videoBlendShapes = document.getElementsByTagName( 'ul' )[0];
+
+			const context = canvas.getContext( '2d' );
+  			const drawingUtils = new DrawingUtils( context );
+/*
+			context.fillStyle = 'gray';
+			context.fillRect( 0,0,1024,1024);
+			context.fillStyle = 'black';
+			context.fillText( 'mouse over this canvas', 33, 33 );
+
+*/
+			// idk what this is...
+			//ddkconst drawBlendShapes = (el: HTMLElement, blendShapes: any[]) => {
+			const drawBlendShapes = ( el, blendShapes ) => {
+				if (!blendShapes.length) {
+					return;
+				}
+
+				let htmlMaker = "";
+				blendShapes[0].categories.map((shape) => {
+					htmlMaker += `
+						<li class="blend-shapes-item">
+						<span class="blend-shapes-label">${
+						shape.displayName || shape.categoryName
+						}</span>
+						<span class="blend-shapes-value" style="width: calc(${
+						+shape.score * 100
+						}% - 120px)">${(+shape.score).toFixed(4)}</span>
+						</li>
+						`;
+					});
+
+				el.innerHTML = htmlMaker;
+			};
+
+let fnk = true;
+
+			let lastVideoTime = -1;
+			let results = undefined;
+			const predictWebcam = () => {
+				let nowInMs = Date.now();
+				if ( lastVideoTime !== video.currentTime) {
+					lastVideoTime = video.currentTime;
+					results = faceLandmarker.detectForVideo( video, nowInMs );
+				}
+
+				const c = { color: '#30FF30', lineWidth:1 }
+
+
+				for (const landmarks of (results.faceLandmarks||[]) ) {
+					drawingUtils.drawConnectors( landmarks, FaceLandmarker.FACE_LANDMARKS_TESSELATION, c );
+				}
+
+				drawBlendShapes( videoBlendShapes, results.faceBlendshapes );
+
+
+				window.requestAnimationFrame(predictWebcam);
+			}
+
+			const move = 'mousemove';
+			const start = () => {
+				canvas.removeEventListener( move, start );
+				console.log('ok');
+  				const constraints = { video: true };
+
+				navigator.mediaDevices.getUserMedia(constraints).then((stream) => {
+					video.srcObject = stream;
+					canvas.width = video.width;
+					canvas.height = video.height;
+					video.addEventListener('loadeddata', predictWebcam);
+				});
+
+
+
+
+			};
+			canvas.addEventListener( move, start );
+		</script>
+
+
+
+		<style>
+			body { 
+				color:#ccb; 
+				background:black; 
+				font-family: sans-serif; 
+				margin:.5em; 
+			}
+/*
+			video, canvas {
+				position:absolute;
+				top:0px;
+				left:33px;
+			}
+			video  { z-index:0; }
+			canvas { z-index:1; 
+				top:480px;
+			}
+*/
+
+			canvas {border:1px solid red;}
+			ul     { float:right; }
+		</style>
+	</HEAD>
+	<BODY>
+		<video id="webcam" style="position: abso" autoplay playsinline></video>
+		<canvas width="640" height="480"></canvas>
+		<ul></ul>
+	</BODY>
+</HTML>

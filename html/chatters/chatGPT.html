@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Face Detection Example</title>
+    <style>
+        #videoElement {
+            width: 100%;
+            height: auto;
+            margin-bottom: 20px;
+        }
+        #output {
+            font-family: monospace;
+            font-size: 24px;
+            line-height: 1.2;
+        }
+    </style>
+</head>
+<body>
+    <h1>Face Detection Example</h1>
+    <video autoplay="true" id="videoElement"></video>
+    <pre id="output"></pre>
+
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_landmark/face_landmark.js"></script>
+    <script>
+        const video = document.querySelector("#videoElement");
+        const output = document.querySelector("#output");
+
+        // Check if webcam access is supported
+        if (navigator.mediaDevices.getUserMedia) {
+            // Request webcam access
+            navigator.mediaDevices.getUserMedia({ video: true })
+            .then(function(stream) {
+                // Set the video source to the webcam stream
+                video.srcObject = stream;
+            })
+            .catch(function(err0r) {
+                console.log("Webcam access denied: " + err0r);
+            });
+        }
+
+        // Create a new Face Landmark Detection instance
+        const landmark = new facemesh.FaceLandmarkDetection({locateFile: (file) => {
+            return `https://cdn.jsdelivr.net/npm/@mediapipe/face_landmark/${file}`;
+        }});
+
+        // Initialize the Face Landmark Detection instance and start processing video frames
+        landmark.setOptions({
+            selfieMode: true,
+            maxNumFaces: 1,
+            minDetectionConfidence: 0.5,
+            minTrackingConfidence: 0.5
+        });
+        landmark.onResults((results) => {
+
+//#				function onResults(results) {
+  // Draw the 3D rotation of the face
+  canvas3d.style.transform = `rotateX(${results.pose.rotation[0]}deg) rotateY(${results.pose.rotation[1]}deg) rotateZ(${results.pose.rotation[2]}deg)`;
+
+  // Calculate the openness of the eyes and mouth
+  const leftEyeOpenness = results.faceExpressions.leftEye;
+  const rightEyeOpenness = results.faceExpressions.rightEye;
+  const mouthOpenness = results.faceExpressions.mouth;
+
+  // Display the openness values
+  leftEye.innerHTML = `Left Eye: ${leftEyeOpenness}`;
+  rightEye.innerHTML = `Right Eye: ${rightEyeOpenness}`;
+  mouth.innerHTML = `Mouth: ${mouthOpenness}`;
+
+  // Calculate the direction the pupils are looking
+  const leftEyeLandmarks = results.faceLandmarks.leftEye;
+  const rightEyeLandmarks = results.faceLandmarks.rightEye;
+  const leftPupil = leftEyeLandmarks[0];
+  const rightPupil = rightEyeLandmarks[0];
+  const leftGazeDirection = results.faceLandmarks.leftEye[0].inferred ? null : results.faceLandmarks.leftEye[0].direction;
+  const rightGazeDirection = results.faceLandmarks.rightEye[0].inferred ? null : results.faceLandmarks.rightEye[0].direction;
+
+  // Display the gaze direction values
+  if (leftGazeDirection) {
+    leftGazeX.innerHTML = `Left Gaze X: ${leftGazeDirection[0]}`;
+    leftGazeY.innerHTML = `Left Gaze Y: ${leftGazeDirection[1]}`;
+    leftGazeZ.innerHTML = `Left Gaze Z: ${leftGazeDirection[2]}`;
+  }
+
+  if (rightGazeDirection) {
+    rightGazeX.innerHTML = `Right Gaze X: ${rightGazeDirection[0]}`;
+    rightGazeY.innerHTML = `Right Gaze Y: ${rightGazeDirection[1]}`;
+    rightGazeZ.innerHTML = `Right Gaze Z: ${rightGazeDirection[2]}`;
+  }
+
+  requestAnimationFrame(() => {
+    onResults(results);
+  });
+//}
+
+		})
+	</script>

@@ -1,0 +1,55 @@
+<html>
+<head>
+  <title>Face Landmark Detection</title>
+</head>
+<body>
+  <video id="video"></video>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mediapipe/0.8.6/mediapipe.js"></script>
+  <script>
+    function onMediaPipeReady() {
+      // Create a face landmark detection model.
+      const faceLandmarkModel = new mediapipe.FaceLandmarkModel();
+    
+      // Start the face landmark detection pipeline.
+      faceLandmarkModel.start({
+        video: document.getElementById("video"),
+        onResults: onFaceLandmarkResults
+      });
+    }
+    
+    function onFaceLandmarkResults(results) {
+      // Get the rotation of the face in 3D.
+      const rotation = results.rotation;
+    
+      // Get the openness of the eyes and mouth from 0-1.
+      const eyeOpenness = results.eyeOpenness;
+      const mouthOpenness = results.mouthOpenness;
+    
+      // Get the direction the pupils are looking.
+      const pupilDirection = results.pupilDirection;
+    
+      // Update the UI with the face landmark results.
+      document.getElementById("rotation").innerHTML = rotation;
+      document.getElementById("eyeOpenness").innerHTML = eyeOpenness;
+      document.getElementById("mouthOpenness").innerHTML = mouthOpenness;
+      document.getElementById("pupilDirection").innerHTML = pupilDirection;
+    }
+    
+    // Initialize the MediaPipe library.
+    mediapipe.initialize({
+      modelPath: "https://cdnjs.cloudflare.com/ajax/libs/mediapipe/0.8.6/mediapipe.min.js"
+    });
+    
+    // Add an event listener for the webcam to start the face landmark detection pipeline when it is ready.
+    document.getElementById("video").addEventListener("readystatechange", onMediaPipeReady);
+  </script>
+  <div>
+    <h1>Face Landmark Detection</h1>
+    <p>Rotation: <span id="rotation"></span></p>
+    <p>Eye Openness: <span id="eyeOpenness"></span></p>
+    <p>Mouth Openness: <span id="mouthOpenness"></span></p>
+    <p>Pupil Direction: <span id="pupilDirection"></span></p>
+  </div>
+</body>
+</html>
+
